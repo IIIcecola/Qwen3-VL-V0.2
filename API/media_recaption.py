@@ -99,7 +99,7 @@ class MediaProcessor:
         with open(image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode('utf-8')
 
-    def media_recaption(self, image_path=None, frames=None, language="英文"):
+    def media_recaption(self, image_path=None, video_path=None, frames=None, language="英文"):
         try:
           messages = [
               {"role": "system", "content": "you are a helpful assisstant."}
@@ -683,33 +683,42 @@ class MediaProcessor:
             
         return result
 
+def parse_args():
+    import argparse
+    parser = argparse.ArgumentParser(description="Media Recaption Tool - Generate captions for images/videos")
+    parser.add_argument("--input-dir", type=str, required=True, help="Directory containing input media files")
+    parser.add_argument("--root-dir", type=str, required=True, help="Root directory for output results")
+    parser.add_argument("--prompt-text", type=str, default="识别物体并计数。", help="Additional prompt text for caption generation")
+    parser.add_argument("--annotation-type", type=str, default="recaption", help="Type of annotation to add (default: recaption)")
+    parser.add_argument("--language", type=str, default="英文", help="Output language (default: 英文)")
+    parser.add_argument("--fps", type=float, default=1.0, help="Frame extraction rate for videos (default: 1.0)")
+    parser.add_argument("--api-key", type=str, default="key", help="API key for model access")
+    parser.add_argument("--api-base", type=str, default="http://10.59.67.2:5018/v1", help="Base URL for API endpoint")
+    parser.add_argument("--model", type=str, default="Qwen3-VL", help="model name")
+    
+    return parser.parse_args()
+
 def main():
-    """命令行入口函数"""
-    if len(sys.argv) < 5:
-        print("用法: python recaption_caption.py <api_key> <api_base> <输入目录> <根目录> [语言] [fps] [标注类型]")
-        print("示例: python recaption_caption.py 'your_key' 'https://api.url' './input' './output' '中文' 1.0 'recaption'")
-        sys.exit(1)
-
-    # 解析命令行参数
-    api_key = sys.argv[1]
-    api_base = sys.argv[2]
-    input_dir = sys.argv[3]
-    root_dir = sys.argv[4]
-    language = sys.argv[5] if len(sys.argv) > 5 else "英文"
-    fps = float(sys.argv[6]) if len(sys.argv) > 6 else 1.0
-    annotation_type = sys.argv[7] if len(sys.argv) > 7 else "recaption"
-
-    # 创建处理器实例并执行处理
+    args = parse_args()
+    # 初始化媒体处理器
     processor = MediaProcessor(
-        api_key=api_key,
-        api_base=api_base,
-        input_dir=input_dir,
-        root_dir=root_dir,
-        language=language,
-        fps=fps,
-        annotation_type=annotation_type
+        input_dir=args.input_dir,
+        root_dir=args.root_dir,
+        prompt_text=args.prompt_text,
+        annotation_type=args.annotation_type,
+        language=args.language,
+        fps=args.fps,
+        api_key=args.api_key,
+        api_base=args.api_base,
+        model=args.model
     )
+    # 这里可以添加实际处理逻辑（例如遍历输入目录并处理文件）
+    print("Media processor initialized successfully.")
+    # 示例：打印环境信息
+    print("Environment info:", processor.check_environment())
+    print("processing...")
     processor.process()
+    print("Media processor process successfully!")
 
 if __name__ == "__main__":
     main()
